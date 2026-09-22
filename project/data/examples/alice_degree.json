@@ -1,0 +1,11 @@
+{
+  "credential_id": "DEG-2026-001",
+  "student_id": "S-10001",
+  "university": "Example University",
+  "degree": "BSc Computer Science",
+  "graduation_year": 2026,
+  "classification": "First Class",
+  "issuer": "Registrar's Office",
+  "owner_address": "0x1111111111111111111111111111111111111111"
+}
+

@@ -1,0 +1,4 @@
+streamlit>=1.39,<2
+web3>=7.6,<8
+python-dotenv>=1.0,<2
+

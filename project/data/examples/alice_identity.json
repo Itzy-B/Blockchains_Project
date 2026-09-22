@@ -1,0 +1,9 @@
+{
+  "name": "Alice Student",
+  "email": "alice@example.edu",
+  "student_id": "S-10001",
+  "university": "Example University",
+  "programme": "BSc Computer Science",
+  "owner_address": "0x1111111111111111111111111111111111111111"
+}
+

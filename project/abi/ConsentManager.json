@@ -1,0 +1,8 @@
+[
+  {"type":"function","name":"grantConsent","stateMutability":"nonpayable","inputs":[{"name":"requester","type":"address"},{"name":"credentialHash","type":"bytes32"},{"name":"durationDays","type":"uint256"}],"outputs":[{"name":"consentId","type":"uint256"}]},
+  {"type":"function","name":"revokeConsent","stateMutability":"nonpayable","inputs":[{"name":"consentId","type":"uint256"}],"outputs":[]},
+  {"type":"function","name":"getOwnerConsentIds","stateMutability":"view","inputs":[{"name":"owner","type":"address"}],"outputs":[{"name":"","type":"uint256[]"}]},
+  {"type":"function","name":"getConsent","stateMutability":"view","inputs":[{"name":"consentId","type":"uint256"}],"outputs":[{"name":"owner","type":"address"},{"name":"requester","type":"address"},{"name":"credentialHash","type":"bytes32"},{"name":"startTime","type":"uint256"},{"name":"expiryTime","type":"uint256"},{"name":"revoked","type":"bool"}]},
+  {"type":"function","name":"hasValidConsent","stateMutability":"view","inputs":[{"name":"owner","type":"address"},{"name":"requester","type":"address"},{"name":"credentialHash","type":"bytes32"}],"outputs":[{"name":"","type":"bool"}]}
+]
+

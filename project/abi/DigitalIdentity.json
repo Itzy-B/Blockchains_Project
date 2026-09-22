@@ -1,0 +1,8 @@
+[
+  {"type":"function","name":"registerUser","stateMutability":"nonpayable","inputs":[{"name":"identityHash","type":"bytes32"}],"outputs":[]},
+  {"type":"function","name":"addCredential","stateMutability":"nonpayable","inputs":[{"name":"credentialHash","type":"bytes32"}],"outputs":[]},
+  {"type":"function","name":"getIdentity","stateMutability":"view","inputs":[{"name":"user","type":"address"}],"outputs":[{"name":"identityHash","type":"bytes32"},{"name":"registered","type":"bool"}]},
+  {"type":"function","name":"isRegistered","stateMutability":"view","inputs":[{"name":"user","type":"address"}],"outputs":[{"name":"","type":"bool"}]},
+  {"type":"function","name":"getCredentialHashes","stateMutability":"view","inputs":[{"name":"user","type":"address"}],"outputs":[{"name":"","type":"bytes32[]"}]}
+]
+

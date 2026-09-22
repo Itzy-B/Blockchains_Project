@@ -1,0 +1,5 @@
+[
+  {"type":"function","name":"accessData","stateMutability":"nonpayable","inputs":[{"name":"owner","type":"address"},{"name":"credentialHash","type":"bytes32"}],"outputs":[{"name":"granted","type":"bool"}]},
+  {"type":"event","name":"AccessAttempt","anonymous":false,"inputs":[{"name":"owner","type":"address","indexed":true},{"name":"requester","type":"address","indexed":true},{"name":"credentialHash","type":"bytes32","indexed":true},{"name":"timestamp","type":"uint256","indexed":false},{"name":"granted","type":"bool","indexed":false}]}
+]
+
