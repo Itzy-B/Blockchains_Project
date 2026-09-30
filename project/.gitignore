@@ -6,3 +6,7 @@ __pycache__/
 data/identities/
 data/credentials/
 
+
+node_modules/
+artifacts/
+cache/
