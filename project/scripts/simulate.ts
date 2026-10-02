@@ -1,5 +1,5 @@
 import { network } from "hardhat";
-import { keccak256, toBytes } from "viem";
+import { formatEther, keccak256, toBytes, type Hash } from "viem";
 const { viem } = await network.connect();
 
 const publicClient = await viem.getPublicClient();
@@ -34,6 +34,15 @@ const rewardToken = await viem.getContractAt(
     REWARD_TOKEN
 );
 
+async function confirmAndShowCost(label: string, transaction: Promise<Hash>) {
+    const hash = await transaction;
+    const receipt = await publicClient.waitForTransactionReceipt({ hash });
+    const feeWei = receipt.gasUsed * receipt.effectiveGasPrice;
+    console.log(`   ${label} gas used: ${receipt.gasUsed.toString()}`);
+    console.log(`   ${label} network fee: ${formatEther(feeWei)} ETH (${feeWei.toString()} wei)`);
+    return receipt;
+}
+
 // 1. Alice registers her identity
 const identityHash = keccak256(
     toBytes("alice_identity.json")
@@ -41,9 +50,9 @@ const identityHash = keccak256(
 
 console.log("\n1. Alice registers her identity...");
 
-await digitalIdentity.write.registerUser(
-    [identityHash],
-    { account: alice.account }
+await confirmAndShowCost(
+    "Registration",
+    digitalIdentity.write.registerUser([identityHash], { account: alice.account })
 );
 
 console.log("   Identity registered.");
@@ -55,9 +64,9 @@ const credentialHash = keccak256(
 
 console.log("\n2. Alice registers her degree credential...");
 
-await digitalIdentity.write.addCredential(
-    [credentialHash],
-    { account: alice.account }
+await confirmAndShowCost(
+    "Credential registration",
+    digitalIdentity.write.addCredential([credentialHash], { account: alice.account })
 );
 
 console.log("   Credential registered.");
@@ -65,9 +74,12 @@ console.log("   Credential registered.");
 // 3. Alice grants Bob access for 30 days
 console.log("\n3. Alice grants Bob access for 30 days...");
 
-await consentManager.write.grantConsent(
-    [bob.account.address, credentialHash, 30n],
-    { account: alice.account }
+await confirmAndShowCost(
+    "Consent grant",
+    consentManager.write.grantConsent(
+        [bob.account.address, credentialHash, 30n],
+        { account: alice.account }
+    )
 );
 
 console.log("   Consent granted.");
@@ -91,14 +103,12 @@ console.log(
 // 5. Bob accesses Alices credential
 console.log("\n5. Bob attempts to access Alice's credential...");
 
-const accessBefore = await dataSharing.write.accessData(
-    [alice.account.address, credentialHash],
-    { account: bob.account }
+await confirmAndShowCost(
+    "Granted access",
+    dataSharing.write.accessData([alice.account.address, credentialHash], {
+        account: bob.account,
+    })
 );
-
-await publicClient.waitForTransactionReceipt({
-    hash: accessBefore,
-});
 
 console.log("   Access attempt completed.");
 console.log("   Expected result: GRANTED");
@@ -106,9 +116,9 @@ console.log("   Expected result: GRANTED");
 // 6. Alice revokes consent #0
 console.log("\n6. Alice revokes Bob's consent...");
 
-await consentManager.write.revokeConsent(
-    [0n],
-    { account: alice.account }
+await confirmAndShowCost(
+    "Consent revocation",
+    consentManager.write.revokeConsent([0n], { account: alice.account })
 );
 
 console.log("   Consent revoked.");
@@ -116,14 +126,12 @@ console.log("   Consent revoked.");
 // 7. Bob attempts access again
 console.log("\n7. Bob attempts access after revocation...");
 
-const accessAfter = await dataSharing.write.accessData(
-    [alice.account.address, credentialHash],
-    { account: bob.account }
+await confirmAndShowCost(
+    "Denied access",
+    dataSharing.write.accessData([alice.account.address, credentialHash], {
+        account: bob.account,
+    })
 );
-
-await publicClient.waitForTransactionReceipt({
-    hash: accessAfter,
-});
 
 console.log("   Access attempt completed.");
 console.log("   Expected result: DENIED");

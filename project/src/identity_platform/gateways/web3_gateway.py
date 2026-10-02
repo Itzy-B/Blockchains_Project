@@ -9,7 +9,7 @@ from typing import Any
 from web3 import Web3
 
 from ..config import Settings
-from ..models import AccessRecord, ConsentRecord, TransactionResult
+from ..models import AccessRecord, ConsentRecord, GasCost, TransactionResult
 
 
 class Web3Gateway:
@@ -108,6 +108,7 @@ class Web3Gateway:
             timestamp=int(args["timestamp"]),
             granted=bool(args["granted"]),
             transaction_hash=Web3.to_hex(receipt.transactionHash),
+            gas_cost=self._gas_cost(receipt),
         )
 
     def access_records(self, owner: str | None = None) -> list[AccessRecord]:
@@ -115,17 +116,23 @@ class Web3Gateway:
         events = self.sharing.events.AccessAttempt().get_logs(
             from_block=0, to_block="latest", argument_filters=argument_filters
         )
-        return [
-            AccessRecord(
-                owner=event["args"]["owner"],
-                requester=event["args"]["requester"],
-                credential_hash=Web3.to_hex(event["args"]["credentialHash"]),
-                timestamp=int(event["args"]["timestamp"]),
-                granted=bool(event["args"]["granted"]),
-                transaction_hash=Web3.to_hex(event["transactionHash"]),
+        records: list[AccessRecord] = []
+        for event in reversed(events):
+            # Events do not include gas information, so retrieve the receipt
+            # for the transaction that created each immutable audit entry.
+            receipt = self.web3.eth.get_transaction_receipt(event["transactionHash"])
+            records.append(
+                AccessRecord(
+                    owner=event["args"]["owner"],
+                    requester=event["args"]["requester"],
+                    credential_hash=Web3.to_hex(event["args"]["credentialHash"]),
+                    timestamp=int(event["args"]["timestamp"]),
+                    granted=bool(event["args"]["granted"]),
+                    transaction_hash=Web3.to_hex(event["transactionHash"]),
+                    gas_cost=self._gas_cost(receipt),
+                )
             )
-            for event in reversed(events)
-        ]
+        return records
 
     def reward_balance(self, account: str) -> float:
         raw = self.token.functions.balanceOf(self._address(account)).call()
@@ -142,11 +149,33 @@ class Web3Gateway:
         return TransactionResult(
             transaction_hash=Web3.to_hex(receipt.transactionHash),
             block_number=int(receipt.blockNumber),
+            gas_cost=self._gas_cost(receipt),
         )
 
     def _receipt(self, function: Any, sender: str) -> Any:
         tx_hash = function.transact({"from": self._address(sender)})
         return self.web3.eth.wait_for_transaction_receipt(tx_hash, timeout=120)
+
+    def _gas_cost(self, receipt: Any) -> GasCost:
+        """Create an exact fee record from a transaction receipt.
+
+        Ethereum charges the sender automatically. A contract cannot know the
+        final fee while it is executing, because gas used is only final after
+        execution completes. The mined receipt is therefore the authoritative
+        source: fee = gas used * effective gas price.
+        """
+        gas_used = int(receipt["gasUsed"])
+        effective_gas_price = receipt.get("effectiveGasPrice")
+        if effective_gas_price is None:
+            # Compatibility with nodes that return legacy transaction receipts.
+            transaction = self.web3.eth.get_transaction(receipt["transactionHash"])
+            effective_gas_price = transaction["gasPrice"]
+        price_wei = int(effective_gas_price)
+        return GasCost(
+            gas_used=gas_used,
+            effective_gas_price_wei=price_wei,
+            total_fee_wei=gas_used * price_wei,
+        )
 
     @staticmethod
     def _address(value: str) -> str:

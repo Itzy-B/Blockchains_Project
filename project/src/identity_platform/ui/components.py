@@ -7,7 +7,7 @@ from typing import Any
 
 import streamlit as st
 
-from ..models import TransactionResult
+from ..models import GasCost, TransactionResult
 
 
 def apply_theme() -> None:
@@ -51,6 +51,20 @@ def render_sidebar_status(gateway: Any, mode: str) -> None:
 def transaction_success(result: TransactionResult) -> None:
     st.success(result.message or "Transaction confirmed")
     st.caption(f"Block {result.block_number} · {short_hash(result.transaction_hash, 12)}")
+    render_gas_cost(result.gas_cost)
+
+
+def render_gas_cost(gas_cost: GasCost | None) -> None:
+    """Display the confirmed network fee when the action used a real chain."""
+    if gas_cost is None:
+        st.caption("Gas cost: unavailable in demo mode.")
+        return
+    st.caption(
+        f"Gas used: {gas_cost.gas_used:,} · "
+        f"Gas price: {gas_cost.effective_gas_price_gwei:.3f} gwei · "
+        f"Network fee: {gas_cost.total_fee_eth:.8f} ETH"
+    )
+    st.caption(f"Exact fee: {gas_cost.total_fee_wei:,} wei")
 
 
 def short_hash(value: str, size: int = 8) -> str:
@@ -67,4 +81,3 @@ def error_message(exc: Exception) -> None:
     message = str(exc)
     # Web3 exceptions can be extremely long; keep the actionable part visible.
     st.error(message[:600] if message else exc.__class__.__name__)
-

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+from decimal import Decimal
 from datetime import datetime, timezone
 from typing import Any
 
@@ -58,6 +59,27 @@ class ConsentRecord:
 
 
 @dataclass(frozen=True)
+class GasCost:
+    """The actual network fee paid by a mined transaction.
+
+    `total_fee_wei` is calculated from the receipt, so it represents the
+    confirmed fee rather than a pre transaction estimate.
+    """
+
+    gas_used: int
+    effective_gas_price_wei: int
+    total_fee_wei: int
+
+    @property
+    def total_fee_eth(self) -> Decimal:
+        return Decimal(self.total_fee_wei) / Decimal(10**18)
+
+    @property
+    def effective_gas_price_gwei(self) -> Decimal:
+        return Decimal(self.effective_gas_price_wei) / Decimal(10**9)
+
+
+@dataclass(frozen=True)
 class AccessRecord:
     owner: str
     requester: str
@@ -65,6 +87,7 @@ class AccessRecord:
     timestamp: int
     granted: bool
     transaction_hash: str
+    gas_cost: GasCost | None = None
 
 
 @dataclass(frozen=True)
@@ -72,4 +95,4 @@ class TransactionResult:
     transaction_hash: str
     block_number: int
     message: str = ""
-
+    gas_cost: GasCost | None = None

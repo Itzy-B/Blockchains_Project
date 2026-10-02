@@ -5,7 +5,7 @@ from __future__ import annotations
 import streamlit as st
 
 from ..validation import is_bytes32, is_ethereum_address
-from .components import error_message, format_time, hero, short_hash
+from .components import error_message, format_time, hero, render_gas_cost, short_hash
 
 
 def render(gateway, account: str, store) -> None:
@@ -28,6 +28,7 @@ def render(gateway, account: str, store) -> None:
             else:
                 st.error("ACCESS DENIED — no active matching consent exists.")
             st.caption(f"Audit transaction: {short_hash(record.transaction_hash, 12)}")
+            render_gas_cost(record.gas_cost)
         except Exception as exc:
             error_message(exc)
 
@@ -52,6 +53,9 @@ def render(gateway, account: str, store) -> None:
             "Credential": short_hash(row.credential_hash, 8),
             "Time": format_time(row.timestamp),
             "Transaction": short_hash(row.transaction_hash, 8),
+            "Network fee (ETH)": (
+                f"{row.gas_cost.total_fee_eth:.8f}" if row.gas_cost else "Demo mode"
+            ),
         }
         for row in records
     ]
