@@ -4,8 +4,6 @@ import { network } from "hardhat";
 const { viem } = await network.connect();
 
 const publicClient = await viem.getPublicClient();
-
-// Address from your existing simulation
 const DATA_SHARING =
     "0x9fe46736679d2d9a65f0992f2272de9f3c7fa6e0";
 
