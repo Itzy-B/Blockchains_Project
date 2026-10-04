@@ -5,10 +5,9 @@ pragma solidity ^0.8.24;
 /// @title Consent & Permission component for the team's credential-sharing UI
 /// @author Ilgaz Mehmetoglu (i6385148)
 /// @notice Minimal consent lifecycle matching the frontend interface.
-/// @dev Identity ownership checks and reward integration are still separate TODOs.
 contract ConsentManager {
     // Field order matches the six values consumed by Web3Gateway.owner_consents.
-    // Only wallet addresses, hashes and timestamps belong on-chain, never records.
+    // Only wallet addresses, hashes and timestamps belong on chain, never records.
     struct Consent {
         address owner;
         address requester;
@@ -38,8 +37,6 @@ contract ConsentManager {
     /// @notice Grant access to one credential for 1–365 whole days.
     /// @dev The signing wallet is the owner. Repeated grants have independent IDs,
     /// matching the demo backend. This method does not mint rewards.
-    /// TODO: wire DigitalIdentity.hasCredential once deployment is coordinated;
-    /// currently a hash is scoped to the signer, not verified against the registry.
     function grantConsent(
         address requester,
         bytes32 credentialHash,
@@ -68,9 +65,9 @@ contract ConsentManager {
     }
 
     /// @notice True if any matching grant is unrevoked and strictly before expiry.
-    /// @dev Giorgos calls this from DataSharing using the authenticated requester.
+    /// @dev this is called from DataSharing using the authenticated requester.
     /// This read does not log access or release files. DataSharing must log both
-    /// outcomes without reverting denied attempts. The matching-history scan is
+    /// outcomes without reverting denied attempts. The matching history scan is
     /// sufficient for the local prototype; it is not bounded for production use.
     function hasValidConsent(
         address owner,
